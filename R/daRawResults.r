@@ -17,7 +17,7 @@
 #' }
 #' @importFrom stats formula terms family
 #' @keywords internal
-daRawResults<-function(x, constants=c(), terms=NULL, fit.functions="default", data=NULL, null.model=NULL, link.betareg=NULL, ...) {
+daRawResults<-function(x, constants=c(), terms=NULL, fit.functions, data=NULL, null.model=NULL, link.betareg=NULL, ...) {
   f<-formula(x)
   t.f<-terms(f)
   base.cov<-family.glm<-link.betareg<-NULL
@@ -61,8 +61,7 @@ daRawResults<-function(x, constants=c(), terms=NULL, fit.functions="default", da
   if(fit.functions=="default") {
 	# Should return
 	  fit.functions<-do.call(paste0("da.",class(x)[1],".fit"), list(data=data, null.model=null.model, base.cov=base.cov, family.glm=family.glm, link.betareg=link.betareg))
-  }
-  if(fit.functions=="brglm"){
+  } elseif (fit.functions=="brglm"){
    fit.functions= function(x){
       if (x == "names") {
         return(c("r2.m", "r2.cs", "r2.n", "r2.e"))
