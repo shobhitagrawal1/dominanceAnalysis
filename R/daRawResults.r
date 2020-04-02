@@ -17,7 +17,7 @@
 #' }
 #' @importFrom stats formula terms family
 #' @keywords internal
-daRawResults<-function(x, constants=c(), terms=NULL, fit.functions="default", data=NULL, null.model=NULL, link.betareg=NULL, ...) {
+daRawResults<-function(x, constants=c(), terms=NULL, fit.functions, data=NULL, null.model=NULL, link.betareg=NULL, ...) {
   f<-formula(x)
   t.f<-terms(f)
   base.cov<-family.glm<-link.betareg<-NULL
@@ -61,7 +61,21 @@ daRawResults<-function(x, constants=c(), terms=NULL, fit.functions="default", da
   if(fit.functions=="default") {
 	# Should return
 	  fit.functions<-do.call(paste0("da.",class(x)[1],".fit"), list(data=data, null.model=null.model, base.cov=base.cov, family.glm=family.glm, link.betareg=link.betareg))
-  }
+  } elseif (fit.functions=="brglm"){
+   fit.functions= function(x){
+      if (x == "names") {
+        return(c("r2.m", "r2.cs", "r2.n", "r2.e"))
+      }
+      g1 <- brglm(x, data = data)
+      g.null <- update(g1, ~1, data = data)
+      l0 = logLik(g.null)
+      l1 = logLik(g1)
+      n <- nrow(data)
+      r2.cs <- 1 - exp(2/n * (l0 - l1))
+      list(r2.m = 1 - (l1/l0), r2.cs = r2.cs, r2.n = r2.cs/(1 - 
+                                                              exp(l0)^(2/n)), r2.e = 1 - (l1/l0)^(-(2/n) * l0))
+    }
+}
   ffn=fit.functions("names")
 
   fits<-matrix(0, nrow(models$pred.matrix), length(ffn))
